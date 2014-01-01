@@ -161,7 +161,7 @@ import sys
 import subprocess
 import time
 
-conn = pymysql.connect(host = '152.2.15.164' , user = 'charlesczysz' , passwd = 'CharlesSquared', database = 'ld')
+conn = pymysql.connect(host = <host> , user = <user> , passwd = <password>, database = <database>)
 
 cur = conn.cursor()
 
