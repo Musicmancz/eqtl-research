@@ -1,7 +1,7 @@
-﻿8 July
+# 8 July
 
 
-        Edited recursion perl script to allow cycling through population within each chromosome. Writes size of each LD block to file, one block per line for import into python script for graphing.
+Edited recursion perl script to allow cycling through population within each chromosome. Writes size of each LD block to file, one block per line for import into python script for graphing.
 
 
 Figured out weirdness with snps in stop codon but not in exon... maybe. Many are in exons, just weren’t included in total file for whatever reason.
@@ -10,7 +10,7 @@ Figured out weirdness with snps in stop codon but not in exon... maybe. Many are
 Todo: Add export of per-population trees
 
 
-10 July
+# 10 July
 
 
     Recursion program:
@@ -29,7 +29,7 @@ Output totals.txt file easily importable into R for graphing as histogram (<vari
 
 
 
-11 July
+# 11 July
 
 
 ~/Downloads/snp_result.txt : file downloaded from 
@@ -419,7 +419,7 @@ Stores boolean for if gtex rsid is in the hapmap ld dataset
 
 
 
-Winter break 
+# Winter break 
 
 
 Use curl to send Post string to SNAP. Save ld pair data to file. 
@@ -434,3 +434,9 @@ Count match vs total over many different boot strap runs. Find average and std a
 
 
 100 runs:
+
+## Later on
+
+Error in running script for 10,000 runs: if SNAP server is down, returns error message and script fails.
+
+Added check for script: if fails, run again keeping place. If fails >100 times: quit for good.
