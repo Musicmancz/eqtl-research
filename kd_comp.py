@@ -35,7 +35,8 @@ def getRandomRsids(cur):
 
 def getTestRsids(cur):
 
-test_rsids = []
+  test_rsids = []
+
   while len(test_rsids) == 0:
     [pop , chrom , block] = getRandomRsids(cur)
   
@@ -88,6 +89,9 @@ def compareResults():
     
     if "SNP" in line: #skip first line
       continue
+    
+    if "Error" in line: #sometimes connection fails, returns file with "Error:" at beginning of second line
+      return False
 
     entries = line.strip().split('\t')
     
@@ -109,6 +113,7 @@ def compareResults():
     cur.execute(sql % (pop, entries[1]))
 
     for row in cur:
+
       try:
         block2 = int(row[0])
         
@@ -117,11 +122,11 @@ def compareResults():
         continue
 
 
-    if block1 == block2: #SNAP pairs are in same block in MySQL data
-      fh_match.write('\t'.join([entries[0] , entries[1] , str(block1)]) + '\n')
+      if block1 == block2: #SNAP pairs are in same block in MySQL data
+        fh_match.write('\t'.join([entries[0] , entries[1] , str(block1)]) + '\n')
 
-    else: #SNAP pairs are not in the same block
-      fh_nomatch.write('\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
+      else: #SNAP pairs are not in the same block
+        fh_nomatch.write('\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
   
   fh_match.close()
   fh_nomatch.close()
@@ -130,6 +135,7 @@ def compareResults():
 
 def analyzeResults(out):
   
+  i = 0 
   with open("match.txt","r") as f:
     for i, l in enumerate(f,start=1):
       pass
@@ -161,7 +167,7 @@ import sys
 import subprocess
 import time
 
-conn = pymysql.connect(host = <host> , user = <user> , passwd = <password>, database = <database>)
+conn = pymysql.connect(host = <ip>, user = <user> , passwd =<pass>, database = <db>)
 
 cur = conn.cursor()
 
@@ -172,12 +178,19 @@ else:
 
 ana_fh = open("analyze.txt","w")
 
+falseCount = 0
+
 for i in range(0,runTimes):
   [test_rsids,pop] = getTestRsids(cur)
 
   getSNAPResults(test_rsids,pop)
 
-  compareResults()
+  if compareResults() is False: #make sure SNAP is sending data
+    i-= 1
+    falseCount+=1
+    if falseCount > 100:
+      break
+    continue
 
   analyzeResults(ana_fh)
 
