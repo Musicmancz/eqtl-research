@@ -425,3 +425,9 @@ Count match vs total over many different boot strap runs. Find average and std a
 Error in running script for 10,000 runs: if SNAP server is down, returns error message and script fails.
 
 Added check for script: if fails, run again keeping place. If fails >100 times: quit for good.
+
+# 6 Jan
+
+Email from Killdevil saying my job was idle. Just because of time.sleep(10)
+Stopped it early after it went through ~3500 loops.
+Restarted this morning.
