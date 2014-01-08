@@ -79,7 +79,8 @@ def getSNAPResults(test_rsids,pop):
 def compareResults():
   
   fh_match = open("match.txt",'w')
-  fh_nomatch = open('nomatch.txt','w')
+  fh_nomatch_num = open('nomatch.txt','w')
+  fh_nomatch = open('nomatch_pairs.txt','a+')
   fh_in = open('SNAPResults.txt','r')
   fh_dne = open('dne.txt','w') #file to handle SNPs not in either db
   linenum = 0
@@ -121,14 +122,15 @@ def compareResults():
         fh_dne.write(entries[0] + "\t" + entries[1] + "\n")
         continue
 
-
       if block1 == block2: #SNAP pairs are in same block in MySQL data
         fh_match.write('\t'.join([entries[0] , entries[1] , str(block1)]) + '\n')
 
       else: #SNAP pairs are not in the same block
+        fh_nomatch_num.write('\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
         fh_nomatch.write('\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
-  
+
   fh_match.close()
+  fh_nomatch_num.close()
   fh_nomatch.close()
   fh_in.close()
   fh_dne.close()
