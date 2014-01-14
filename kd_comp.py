@@ -74,7 +74,7 @@ def getSNAPResults(test_rsids,pop):
     """ % (rsidString , hapMapPanel)
 
   subprocess.call(["curl","-s","-d",searchString,"-o","SNAPResults.txt","http://www.broadinstitute.org/mpg/snap/ldsearch.php"])
-  time.sleep(10) #wait 10 seconds to prevent server overload
+  time.sleep(1) #wait 1 second to prevent server overload
 
 def compareResults():
   
@@ -127,7 +127,8 @@ def compareResults():
 
       else: #SNAP pairs are not in the same block
         fh_nomatch_num.write('\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
-        fh_nomatch.write('\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
+        if random.randrange(10) == 1: #write only 10% of nomatch
+          fh_nomatch.write(pop +'\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
 
   fh_match.close()
   fh_nomatch_num.close()
@@ -168,10 +169,12 @@ import random
 import sys
 import subprocess
 import time
+import connect
 
-conn = pymysql.connect(host = <ip>, user = <user> , passwd =<pass>, database = <db>)
+#conn = pymysql.connect(host = <ip>, user = <user> , passwd =<pass>, database = <db>)
 
-cur = conn.cursor()
+#cur = conn.cursor()
+[conn,cur] = connect.makeConn('ld')
 
 if ".py" in sys.argv[-1]:
   runTimes = 1
