@@ -22,13 +22,14 @@ def getRandomRsids(cur):
   else:
     chrom = chroms[chridx]
 
-  sql = "select max("+ pop + ") from blocks"
-  cur.execute(sql)
-  
-  for row in cur:
-    maxblock = int(row[0])
+  # sql = "select max("+ pop + ") from blocks"
+  # cur.execute(sql)
+  # Deleted for unnecessary queries since max values are fixed
 
-  block = random.randrange(1,maxblock+1)
+  # for row in cur:
+  #   maxblock = int(row[0])
+
+  block = random.randrange(1,maxBlocks[pop]+1)
 
   return [pop , chrom, block]
 
@@ -43,16 +44,17 @@ def getTestRsids(cur):
     sql = "select blocks.rsid from blocks inner join rsids on blocks.rsid=rsids.rs where blocks.%s=%s and rsids.chrom='%s'"
 
     cur.execute(sql % (pop,str(block),chrom))
-
-    for row in cur:
-      test_rsids.append(row[0])
+    
+    test_rsids = cur.fetchall()
+    # for row in cur:
+    #   test_rsids.append(row[0])
 
   return(test_rsids,pop)
 
 def getSNAPResults(test_rsids,pop):
   #Use curl to submit a POST form to SNAP in order to retrieve data via command line
 
-  rsidString = "%0D%0A".join(test_rsids) #joins separate RSIDs into one string separated by returns (required for SNAP POST format)
+  rsidString = "%0D%0A".join([item[0] for item in test_rsids]) #joins separate RSIDs into one string separated by returns (required for SNAP POST format)
   hapMapPanel = pop
   if pop is "JPT" or pop is "CHB":
     hapMapPanel = "CHBJPT" #SNAP combines these two groups
@@ -78,11 +80,13 @@ def getSNAPResults(test_rsids,pop):
 
 def compareResults():
   
-  fh_match = open("match.txt",'w')
-  fh_nomatch_num = open('nomatch.txt','w')
-  fh_nomatch = open('nomatch_pairs.txt','a+')
+  match = []
+  nomatch_num = []
+  nomatch = []
   fh_in = open('SNAPResults.txt','r')
-  fh_dne = open('dne.txt','w') #file to handle SNPs not in either db
+  lines = {}
+  dne = []
+
   linenum = 0
 
   for line in fh_in:
@@ -94,47 +98,58 @@ def compareResults():
     if "Error" in line: #sometimes connection fails, returns file with "Error:" at beginning of second line
       return False
 
+    lines[linenum] = line
+
+  fh_in.close()
+  
+  for linenum , line in lines.iteritems():
     entries = line.strip().split('\t')
     
     if 'WARNING' in line: #skip lines where rsid doesn't exist in SNAP data
-      fh_dne.write('\t'.join([entries[0],entries[1] , str(linenum)]) + '\n')
+      dne += '\t'.join([entries[0],entries[1] , str(linenum)]) + '\n'
       continue
 
-    sql = "select %s from blocks where rsid='%s'"
-    cur.execute(sql % (pop, entries[0]))
+    #sql = "select %s from blocks where rsid='%s'"
+    #cur.execute(sql % (pop, entries[0]))
+    sql = "select %s from blocks where rsid='%s' or rsid='%s'" #query both linked snps at once. 
+    cur.execute(sql % (pop, entries[0], entries[1]))
+
+    blocks = []
 
     for row in cur:
       try:
-        block1 = int(row[0])
+        blocks.append(int(row[0]))
         
       except IndexError: #throws IndexError if SNAP RSID doesn't exist in MySQL db
-        fh_dne.write('\t'.join([entries[0] ,entries[1]]),"\n")
+        dne += '\t'.join([entries[0] ,entries[1]]),"\n"
         continue
     
-    cur.execute(sql % (pop, entries[1]))
+    if len(blocks) != 2:
+      continue
 
-    for row in cur:
+    if blocks[0] == blocks[1]: #SNAP pairs are in same block in MySQL data
+      match += '\t'.join([entries[0] , entries[1] , str(blocks[0])]) + '\n'
 
-      try:
-        block2 = int(row[0])
-        
-      except IndexError:
-        fh_dne.write(entries[0] + "\t" + entries[1] + "\n")
-        continue
+    elif  blocks[0] == 0 or blocks[1] == 0:
+      dne += '\t'.join([entries[0] , str(blocks[0]) , entries[1] , str(blocks[1])]) + '\n'
 
-      if block1 == block2: #SNAP pairs are in same block in MySQL data
-        fh_match.write('\t'.join([entries[0] , entries[1] , str(block1)]) + '\n')
+    else: #SNAP pairs are not in the same block
+      nomatch_num += '\t'.join([entries[0] , str(blocks[0]) , entries[1] , str(blocks[1])]) + '\n'
 
-      else: #SNAP pairs are not in the same block
-        fh_nomatch_num.write('\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
-        if random.randrange(10) == 1: #write only 10% of nomatch
-          fh_nomatch.write(pop +'\t'.join([entries[0] , str(block1) , entries[1] , str(block2)]) + '\n')
+      if random.randrange(10) == 1: #write only 10% of nomatch
+        nomatch += pop+ '\t' + '\t'.join([entries[0] , str(blocks[0]) , entries[1] , str(blocks[1])]) + '\n'
 
-  fh_match.close()
-  fh_nomatch_num.close()
-  fh_nomatch.close()
-  fh_in.close()
-  fh_dne.close()
+  with open('match.txt','w') as f:
+    f.write(''.join(match))
+
+  with open('nomatch.txt','w') as f:
+    f.write(''.join(nomatch_num))
+
+  with open('nomatch_pairs.txt','a+') as f:
+    f.write(''.join(nomatch))
+
+  with open('dne.txt','w') as f:
+    f.write(''.join(dne))
 
 def analyzeResults(out):
   
@@ -171,9 +186,6 @@ import subprocess
 import time
 import connect
 
-#conn = pymysql.connect(host = <ip>, user = <user> , passwd =<pass>, database = <db>)
-
-#cur = conn.cursor()
 [conn,cur] = connect.makeConn('ld')
 
 if ".py" in sys.argv[-1]:
@@ -184,6 +196,8 @@ else:
 ana_fh = open("analyze.txt","w")
 
 falseCount = 0
+global maxBlocks
+maxBlocks = {'CEU':171160 , 'CHB':157962 , 'JPT':158172 , 'YRI':158172}
 
 for i in range(0,runTimes):
   [test_rsids,pop] = getTestRsids(cur)
@@ -193,7 +207,7 @@ for i in range(0,runTimes):
   if compareResults() is False: #make sure SNAP is sending data
     i-= 1
     falseCount+=1
-    if falseCount > 100:
+    if falseCount > 25:
       break
     continue
 
