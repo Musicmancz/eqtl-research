@@ -14,7 +14,6 @@ with open(file,'r') as f:
       continue
 
     data = line.strip().split('\t')
-    print(data)
 
     sql = "select %s from blocks where rsid='%s'"
 
@@ -23,6 +22,17 @@ with open(file,'r') as f:
     result = cur.fetchall()
 
     if int(result[0][0]) == int(data[2]):
+        pass
+    else:
+      wrong+=1
+
+    sql = "select %s from blocks where rsid='%s'"
+
+    cur.execute(sql % (data[0],data[3]))
+
+    result = cur.fetchall()
+
+    if int(result[0][0]) == int(data[4]):
         pass
     else:
       wrong+=1
