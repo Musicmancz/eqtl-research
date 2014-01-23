@@ -76,7 +76,7 @@ def getSNAPResults(test_rsids,pop):
     """ % (rsidString , hapMapPanel)
 
   subprocess.call(["curl","-s","-d",searchString,"-o","SNAPResults.txt","http://www.broadinstitute.org/mpg/snap/ldsearch.php"])
-  time.sleep(1) #wait 1 second to prevent server overload
+  time.sleep(0.5) #wait 1 second to prevent server overload
 
 def compareResults():
   
@@ -104,40 +104,47 @@ def compareResults():
   
   for linenum , line in lines.iteritems():
     entries = line.strip().split('\t')
+    rsid_1 = entries[0]
+    rsid_2 = entries[1]
     
     if 'WARNING' in line: #skip lines where rsid doesn't exist in SNAP data
-      dne += '\t'.join([entries[0],entries[1] , str(linenum)]) + '\n'
+      dne += '\t'.join([rsid_1, rsid_2, str(linenum)]) + '\n'
       continue
 
     #sql = "select %s from blocks where rsid='%s'"
     #cur.execute(sql % (pop, entries[0]))
-    sql = "select %s from blocks where rsid='%s' or rsid='%s'" #query both linked snps at once. 
-    cur.execute(sql % (pop, entries[0], entries[1]))
+    sql = "select rsid,%s from blocks where rsid='%s' or rsid='%s'" #query both linked snps at once. 
+    # sql = "select %s from blocks where rsid='%s' or rsid='%s'" #query both linked snps at once. 
+    cur.execute(sql % (pop, rsid_1, rsid_2))
 
-    blocks = []
+    # blocks = []
+    blocks = {}
 
     for row in cur:
       try:
-        blocks.append(int(row[0]))
+        # blocks.append(int(row[0]))
+        blocks[row[0]] = int(row[1])
         
       except IndexError: #throws IndexError if SNAP RSID doesn't exist in MySQL db
-        dne += '\t'.join([entries[0] ,entries[1]]),"\n"
+        dne += '\t'.join([rsid_1 , rsid_2]),"\n"
         continue
     
     if len(blocks) != 2:
       continue
 
-    if blocks[0] == blocks[1]: #SNAP pairs are in same block in MySQL data
-      match += '\t'.join([entries[0] , entries[1] , str(blocks[0])]) + '\n'
+    # if blocks[0] == blocks[1] and blocks[0] != 0: #SNAP pairs are in same block in MySQL data
+    if blocks[rsid_1] == blocks[rsid_2] and blocks[rsid_1] != 0: #SNAP pairs are in same block in MySQL data
+      match += '\t'.join([rsid_1 , rsid_2 , str(blocks[rsid_1])]) + '\n'
 
-    elif  blocks[0] == 0 or blocks[1] == 0:
-      dne += '\t'.join([entries[0] , str(blocks[0]) , entries[1] , str(blocks[1])]) + '\n'
+    # elif  blocks[0] == 0 or blocks[1] == 0: #one or both SNPs do not exist for population
+    elif  blocks[rsid_1] == 0 or blocks[rsid_2] == 0: #one or both SNPs do not exist for population
+      dne += '\t'.join([entries[0] , str(blocks.values()[0]) , entries[1] , str(blocks.values()[1])]) + '\n'
 
     else: #SNAP pairs are not in the same block
-      nomatch_num += '\t'.join([entries[0] , str(blocks[0]) , entries[1] , str(blocks[1])]) + '\n'
+      nomatch_num += '\t'.join([rsid_1 , str(blocks[rsid_1]) , rsid_2, str(blocks[rsid_2])]) + '\n'
 
       if random.randrange(10) == 1: #write only 10% of nomatch
-        nomatch += pop+ '\t' + '\t'.join([entries[0] , str(blocks[0]) , entries[1] , str(blocks[1])]) + '\n'
+        nomatch += '\t'.join([pop,rsid_1 , str(blocks[rsid_1]) , rsid_2 , str(blocks[rsid_2])]) + '\n'
 
   with open('match.txt','w') as f:
     f.write(''.join(match))
