@@ -10,6 +10,19 @@ Establish statistics
  
 SNPs in DHS hapmap vs 1kg
 
+# 22 Jan
+
+In compareResults() need to make sure blocks are correctly associated with rsids, order in query is not necessarily order returned.
+Putting results in dict with rsid as key and block number as value, edited if statements to correctly index
+
+Still some errors with blocks and rsids being swapped. 
+Error from unclosed brackets (oops)
+
+For nomatch_pairs:
+Want to find sets of SNPs linked to SNP1 where my dataset says they are not linked and 1kg says they are
+
+
+
 # 8 July
 
 
@@ -493,15 +506,4 @@ Using Python's cProfile to measure running times.
 In get random rsids, set maxblock values instead of having a query
 
 Added fetchall for test_rsids query return
-
-# 22 Jan
-
-In compareResults() need to make sure blocks are correctly associated with rsids, order in query is not necessarily order returned.
-Putting results in dict with rsid as key and block number as value, edited if statements to correctly index
-
-Still some errors with blocks and rsids being swapped. 
-Error from unclosed brackets (oops)
-
-For nomatch_pairs:
-Want to find sets of SNPs linked to SNP1 where my dataset says they are not linked and 1kg says they are
 
