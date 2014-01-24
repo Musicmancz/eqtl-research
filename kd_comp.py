@@ -12,22 +12,14 @@ def getRandomRsids(cur):
 
   chroms = ['chrX']
 
-  [chroms.append('chr' + str(i)) for i in range(1,23)]
-
+  [chroms.extend('chr' + str(i)) for i in range(1,23)]
   pop = pops[random.randrange(0,4)]
 
   chridx = random.randrange(1,24)
-  if chridx is 23:
+  if chridx == 23:
     chrom = 'chrX'
   else:
     chrom = chroms[chridx]
-
-  # sql = "select max("+ pop + ") from blocks"
-  # cur.execute(sql)
-  # Deleted for unnecessary queries since max values are fixed
-
-  # for row in cur:
-  #   maxblock = int(row[0])
 
   block = random.randrange(1,maxBlocks[pop]+1)
 
@@ -46,8 +38,6 @@ def getTestRsids(cur):
     cur.execute(sql % (pop,str(block),chrom))
     
     test_rsids = cur.fetchall()
-    # for row in cur:
-    #   test_rsids.append(row[0])
 
   return(test_rsids,pop)
 
@@ -64,7 +54,7 @@ def getSNAPResults(test_rsids,pop):
     &snpList=%s
     &hapMapRelease=onekgpilot
     &hapMapPanel=%s
-    &RSquaredLimit=0.8
+    &RSquaredLimit=%s
     &distanceLimit=500000
     &downloadType=File
     &includeQuerySnp=on
@@ -73,10 +63,10 @@ def getSNAPResults(test_rsids,pop):
     &columnList[]=GP
     &columnList[]=AM
     &submit=search
-    """ % (rsidString , hapMapPanel)
+    """ % (rsidString, "0.8", hapMapPanel)
 
   subprocess.call(["curl","-s","-d",searchString,"-o","SNAPResults.txt","http://www.broadinstitute.org/mpg/snap/ldsearch.php"])
-  time.sleep(0.5) #wait 1 second to prevent server overload
+  time.sleep(0.5) #wait to prevent server overload
 
 def compareResults():
   
@@ -104,25 +94,19 @@ def compareResults():
   
   for linenum , line in lines.iteritems():
     entries = line.strip().split('\t')
-    rsid_1 = entries[0]
-    rsid_2 = entries[1]
+    rsid_1 , rsid_2 = entries[0] , entries[1]
     
     if 'WARNING' in line: #skip lines where rsid doesn't exist in SNAP data
       dne += '\t'.join([rsid_1, rsid_2, str(linenum)]) + '\n'
       continue
 
-    #sql = "select %s from blocks where rsid='%s'"
-    #cur.execute(sql % (pop, entries[0]))
     sql = "select rsid,%s from blocks where rsid='%s' or rsid='%s'" #query both linked snps at once. 
-    # sql = "select %s from blocks where rsid='%s' or rsid='%s'" #query both linked snps at once. 
     cur.execute(sql % (pop, rsid_1, rsid_2))
 
-    # blocks = []
     blocks = {}
 
     for row in cur:
       try:
-        # blocks.append(int(row[0]))
         blocks[row[0]] = int(row[1])
         
       except IndexError: #throws IndexError if SNAP RSID doesn't exist in MySQL db
@@ -132,11 +116,9 @@ def compareResults():
     if len(blocks) != 2:
       continue
 
-    # if blocks[0] == blocks[1] and blocks[0] != 0: #SNAP pairs are in same block in MySQL data
     if blocks[rsid_1] == blocks[rsid_2] and blocks[rsid_1] != 0: #SNAP pairs are in same block in MySQL data
       match += '\t'.join([rsid_1 , rsid_2 , str(blocks[rsid_1])]) + '\n'
 
-    # elif  blocks[0] == 0 or blocks[1] == 0: #one or both SNPs do not exist for population
     elif  blocks[rsid_1] == 0 or blocks[rsid_2] == 0: #one or both SNPs do not exist for population
       dne += '\t'.join([entries[0] , str(blocks.values()[0]) , entries[1] , str(blocks.values()[1])]) + '\n'
 
