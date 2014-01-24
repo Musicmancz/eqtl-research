@@ -1,3 +1,15 @@
+# 23 Jan
+
+Created a test script to make sure that the RSIDs and Block numbers in nomatch_pairs match up correctly
+Currently tests 30%, no reason it can't test all
+
+Next step is to write a script to find if SNP2s associated to same SNP1 are associated with each other
+
+Establish statistics
+ - edit statistic cutoff
+ 
+SNPs in DHS hapmap vs 1kg
+
 # 8 July
 
 
@@ -431,3 +443,65 @@ Added check for script: if fails, run again keeping place. If fails >100 times: 
 Email from Killdevil saying my job was idle. Just because of time.sleep(10)
 Stopped it early after it went through ~3500 loops.
 Restarted this morning.
+
+# 8 Jan
+Idea: Take nomatch pairs and figure out why they don't match
+Make new file for output: SNP1 \t block SNP2 \t block
+
+Make separate import for connecting to database
+
+# 14 Jan
+Reduced sleep time to 1 second
+Changed nomatch_pairs to only save 10% of data
+
+Use 
+      
+      with
+	
+when opening files (automatically closes outside of block)
+
+http://effbot.org/pyref/with.htm
+
+# 15 Jan
+
+ld_blocks database is not working.
+Too many entries in block 0, which shouldn't exist.
+
+Changing initial function while loop to loop over array instead of fetchrow results.
+Changing how $LD_number variable is incremented.
+
+## Problem with nomatch_pairs.txt
+
+If rsid is in block 0, then it does not exist in my dataset for that particular population. Should go to dne.
+
+# 18 Jan
+
+Running code with time report to find how long different number of loops will take
+
+# 20 Jan
+
+Ideas for kd_comp.py efficiency:
+
+* Reduce number of sql queries
+* Write fh_in in compareResults() to list, loop over list instead of file
+
+# 21 Jan
+Created indexes on ld.blocks
+
+Using Python's cProfile to measure running times.
+
+In get random rsids, set maxblock values instead of having a query
+
+Added fetchall for test_rsids query return
+
+# 22 Jan
+
+In compareResults() need to make sure blocks are correctly associated with rsids, order in query is not necessarily order returned.
+Putting results in dict with rsid as key and block number as value, edited if statements to correctly index
+
+Still some errors with blocks and rsids being swapped. 
+Error from unclosed brackets (oops)
+
+For nomatch_pairs:
+Want to find sets of SNPs linked to SNP1 where my dataset says they are not linked and 1kg says they are
+
