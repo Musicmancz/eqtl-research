@@ -1,6 +1,14 @@
+# 25 Jan
+Make more stringent cutoff when comparing with SNAP, compare to less stringent.
+
+Since 1kG data is deeper for the 4 populations, compare number of snps which would be missing when using a less complete test.
+Prove that there are cases in which 1kG data would give positive results where HapMap results wouldn't.
+
+
+
 # 23 Jan
 
-Created a test script to make sure that the RSIDs and Block numbers in nomatch_pairs match up correctly
+Created a test script to make sure that the RSIDs and Block numbers in nomatch pairs match up correctly
 Currently tests 30%, no reason it can't test all
 
 Next step is to write a script to find if SNP2s associated to same SNP1 are associated with each other
@@ -18,7 +26,7 @@ Putting results in dict with rsid as key and block number as value, edited if st
 Still some errors with blocks and rsids being swapped. 
 Error from unclosed brackets (oops)
 
-For nomatch_pairs:
+For nomatch pairs:
 Want to find sets of SNPs linked to SNP1 where my dataset says they are not linked and 1kg says they are
 
 
@@ -57,7 +65,7 @@ Output totals.txt file easily importable into R for graphing as histogram (<vari
 # 11 July
 
 
-~/Downloads/snp_result.txt : file downloaded from 
+~/Downloads/snp result.txt : file downloaded from 
 
 
 NCBI help on SNP features https://www.ncbi.nlm.nih.gov/books/NBK44466/
@@ -98,10 +106,10 @@ Next steps:
     make sure chromosome positions are same for both
     Go through each study, compare positions with different versions
 Save RS numbers
-select RS,chr,position from gtex,dhsp2 where chr=dhs_chr and position>=dhs_start and position<=dhs_end group by RS into outfile "/tmp/eqtl_in_dhs2.txt";
+select RS,chr,position from gtex,dhsp2 where chr=dhs chr and position>=dhs start and position<=dhs end group by RS into outfile "/tmp/eqtl in dhs2.txt";
 
 
-LiftOver http://genome.sph.umich.edu/wiki/LiftOver#Lift_dbSNP_rs_numbers
+LiftOver http://genome.sph.umich.edu/wiki/LiftOver#Lift dbSNP rs numbers
 
 
 http://gvs.gs.washington.edu/GVSBatch137/
@@ -152,26 +160,26 @@ Once Emily done with LD block index, make new table for those
 
 
 Create new indexes on existing tables(?)
-        LD.SNP1_pos
-        LD.SNP2_pos
+        LD.SNP1 pos
+        LD.SNP2 pos
 
 
-        dhsp2.dhs_chr
-        dhsp2.dhs_start
-        dhsp2.dhs_end
-        dhsp2.dhs_id
+        dhsp2.dhs chr
+        dhsp2.dhs start
+        dhsp2.dhs end
+        dhsp2.dhs id
   
 # 18 July
 
 
 Uploaded population LD maps.
-Now using “update_ld_hash.pl” script to add coordinates and chromosome to each position.
+Now using “update ld hash.pl” script to add coordinates and chromosome to each position.
 
 
 After those uploaded, have Emily write a new script to calculate the distances of SNPs in the same LD block from each other. (Averages and stdev of range, too?)
 
 
-Currently only Chr22 is uploaded (since is smallest and easiest to work with). Eventually we’d want to include uploading to the ld_blocks table within the rec.pl script once we run through every chromosome.
+Currently only Chr22 is uploaded (since is smallest and easiest to work with). Eventually we’d want to include uploading to the ld blocks table within the rec.pl script once we run through every chromosome.
 
 
 # 19 July
@@ -181,24 +189,24 @@ Perl script not updating correctly
 Running sql command:
 
 
-update ld_blocks,ld set ld_blocks.location = (select SNP1_pos from ld where SNP1_rs = ld_blocks.rsid limit 1) where ld_blocks.chrom is null or ld_blocks.location is null;
+update ld blocks,ld set ld blocks.location = (select SNP1 pos from ld where SNP1 rs = ld blocks.rsid limit 1) where ld blocks.chrom is null or ld blocks.location is null;
 
 
 Sql command doesn’t work.
 
 
-Modified rec_Final.pl to include inserting rows into ld_blocks
+Modified rec Final.pl to include inserting rows into ld blocks
 Uploads after hash is created
 
 
 # 22 July
 
 
-Modify rec_Final.pl to insert row during recursive subroutine
+Modify rec Final.pl to insert row during recursive subroutine
 
 Starting work on identifying eQTLs in DHS, including those linked to SNPs in DHS
 
-Once done, crosscheck eQTL rsids with those in ld_blocks to see if any eQTLs present and assigned an ld block number.
+Once done, crosscheck eQTL rsids with those in ld blocks to see if any eQTLs present and assigned an ld block number.
 
 
 # 23 July
@@ -232,7 +240,7 @@ Average compared to other populations in same chrom
         
 
 
-Create index for each column on ld_blocks.
+Create index for each column on ld blocks.
 
 
 
@@ -240,15 +248,15 @@ Create index for each column on ld_blocks.
 # 24 July
 
 
-Script finished, ld_blocks updated.
+Script finished, ld blocks updated.
 
 
 Creating indexes via source script.
 
 
-Started running snp_in_eqtl.pl script at 10:30, was still running around 3:30.
-ld_in_dhs.txt output repeat values
-fetchrow instead of fetchrow_array at line 40 
+Started running snp in eqtl.pl script at 10:30, was still running around 3:30.
+ld in dhs.txt output repeat values
+fetchrow instead of fetchrow array at line 40 
 
 
 
@@ -256,19 +264,19 @@ fetchrow instead of fetchrow_array at line 40
 # 25 July
 
 
-0842: Running test of snp_in_eqtl.pl, only running for chr22.
-Output of ld_in_dhs.txt containing rsids of SNPs not in DHS, need to test to make sure dhsid is being assigned.
+0842: Running test of snp in eqtl.pl, only running for chr22.
+Output of ld in dhs.txt containing rsids of SNPs not in DHS, need to test to make sure dhsid is being assigned.
 
 
 Do not use while to get results from fetchrow, esp if only one result expected
 
 
-ld_in_dhs.txt contains rsid of SNP in the ld table, dhsid of DHS in which SNP falls
+ld in dhs.txt contains rsid of SNP in the ld table, dhsid of DHS in which SNP falls
 
 
 
 
-Edit snp_in_eqtl.pl to remove finding eqtls in DHS (since that can be done with an sql query)
+Edit snp in eqtl.pl to remove finding eqtls in DHS (since that can be done with an sql query)
 
 
 
@@ -282,19 +290,19 @@ SQL query to find ld snps in dhs running longtemps.
 Using an iPython session to find SNPs in dhs. (Used sql to output a list of dhs locations and snp locations)
 
 ```
-	In [19]: for loc in ld_dict.values():
+	In [19]: for loc in ld dict.values():
 	  loc = int(loc)
-	  for start in dhs_dict.keys():
+	  for start in dhs dict.keys():
 	    if loc>=int(start):
-	      if loc <= int(dhs_dict.values()[dhs_dict.keys().index(start)]):
+	      if loc <= int(dhs dict.values()[dhs dict.keys().index(start)]):
 	      print loc
 ```
 
-ld_dict{rsid => location}
-dhs_dict{dhs_start => dhs_end}
+ld dict{rsid => location}
+dhs dict{dhs start => dhs end}
 
 
-Found ld_blocks has some duplicate entries within same population
+Found ld blocks has some duplicate entries within same population
 
 
 
@@ -306,8 +314,8 @@ Add gencode data to search for eQTLs in and near (~500bp) of TSS
 
 # 30 July
 
-Discovered on the 29th that the ld_blocks table had been uploaded incorrectly:
-ld_number didn’t reset to 1 for different populations in the same chromosome, so Emily’s script wouldn’t work.
+Discovered on the 29th that the ld blocks table had been uploaded incorrectly:
+ld number didn’t reset to 1 for different populations in the same chromosome, so Emily’s script wouldn’t work.
 
 
 Reuploading taking about 2 days...
@@ -382,13 +390,13 @@ Cursory search showed matches, but different r-squred values for SNAP (most lowe
 # 10 Sep
 
 
-Interesting: some rsids in multiple ld_blocks per population per chrom, check to make sure code will prevent this.
+Interesting: some rsids in multiple ld blocks per population per chrom, check to make sure code will prevent this.
 
 
 Otherwise 1000genomes data matching mostly to my blocks
 
 
-When redoing recursive program, make it use seed rsids as SNP2_rs (find SNP1_rs for which rsid is SNP2_rs)
+When redoing recursive program, make it use seed rsids as SNP2 rs (find SNP1 rs for which rsid is SNP2 rs)
 
 
 # 16 Sep
@@ -420,7 +428,7 @@ Now writing each rsid to .txt and uploading to SNAP proxy search to pull their l
 # 21 Oct
 
 
-Added column to gtex: in_hapmap 
+Added column to gtex: in hapmap 
 Stores boolean for if gtex rsid is in the hapmap ld dataset
 
 
@@ -465,7 +473,7 @@ Make separate import for connecting to database
 
 # 14 Jan
 Reduced sleep time to 1 second
-Changed nomatch_pairs to only save 10% of data
+Changed nomatch pairs to only save 10% of data
 
 Use 
       
@@ -477,13 +485,13 @@ http://effbot.org/pyref/with.htm
 
 # 15 Jan
 
-ld_blocks database is not working.
+ld blocks database is not working.
 Too many entries in block 0, which shouldn't exist.
 
 Changing initial function while loop to loop over array instead of fetchrow results.
-Changing how $LD_number variable is incremented.
+Changing how $LD number variable is incremented.
 
-## Problem with nomatch_pairs.txt
+## Problem with nomatch pairs.txt
 
 If rsid is in block 0, then it does not exist in my dataset for that particular population. Should go to dne.
 
@@ -493,10 +501,10 @@ Running code with time report to find how long different number of loops will ta
 
 # 20 Jan
 
-Ideas for kd_comp.py efficiency:
+Ideas for kd comp.py efficiency:
 
 * Reduce number of sql queries
-* Write fh_in in compareResults() to list, loop over list instead of file
+* Write fh in in compareResults() to list, loop over list instead of file
 
 # 21 Jan
 Created indexes on ld.blocks
@@ -505,5 +513,5 @@ Using Python's cProfile to measure running times.
 
 In get random rsids, set maxblock values instead of having a query
 
-Added fetchall for test_rsids query return
+Added fetchall for test rsids query return
 
