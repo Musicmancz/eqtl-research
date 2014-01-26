@@ -41,7 +41,7 @@ def getTestRsids(cur):
 
   return(test_rsids,pop)
 
-def getSNAPResults(test_rsids,pop):
+def getSNAPResults(test_rsids,pop,rsq):
   #Use curl to submit a POST form to SNAP in order to retrieve data via command line
 
   rsidString = "%0D%0A".join([item[0] for item in test_rsids]) #joins separate RSIDs into one string separated by returns (required for SNAP POST format)
@@ -63,7 +63,7 @@ def getSNAPResults(test_rsids,pop):
     &columnList[]=GP
     &columnList[]=AM
     &submit=search
-    """ % (rsidString, "0.8", hapMapPanel)
+    """ % (rsidString, rsq, hapMapPanel)
 
   subprocess.call(["curl","-s","-d",searchString,"-o","SNAPResults.txt","http://www.broadinstitute.org/mpg/snap/ldsearch.php"])
   time.sleep(0.5) #wait to prevent server overload
@@ -191,7 +191,7 @@ maxBlocks = {'CEU':171160 , 'CHB':157962 , 'JPT':158172 , 'YRI':158172}
 for i in range(0,runTimes):
   [test_rsids,pop] = getTestRsids(cur)
 
-  getSNAPResults(test_rsids,pop)
+  getSNAPResults(test_rsids,pop,"0.8")
 
   if compareResults() is False: #make sure SNAP is sending data
     i-= 1
